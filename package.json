@@ -1,0 +1,25 @@
+{
+  "name": "sample-node-app",
+  "version": "1.0.0",
+  "description": "Minimal Node.js app to validate an end-to-end DevSecOps pipeline (Gitleaks, Semgrep, Dependency-Check, SonarQube, Trivy, ZAP).",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "node -e \"require('http').get('http://localhost:3000/health', r => { if (r.statusCode !== 200) process.exit(1); let d=''; r.on('data', c => d+=c); r.on('end', ()=>{ try { const j=JSON.parse(d); if(j.status!=='OK') process.exit(1); } catch(e){ process.exit(1); } }); }).on('error', ()=>process.exit(1));\""
+  },
+  "keywords": [
+    "devsecops",
+    "express",
+    "sample",
+    "pipeline"
+  ],
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
