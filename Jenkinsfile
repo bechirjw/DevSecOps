@@ -62,21 +62,21 @@ pipeline {
 
     stage('Trivy Scan') {
       steps {
-        sh '''
+        sh """
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$PWD:/work" -w /work \
+            -v "\$PWD:/work" -w /work \
             aquasec/trivy:latest image \
             --format json --output trivy-report.json \
             --exit-code 0 --severity LOW,MEDIUM \
-            '"$IMAGE"'
+            ${IMAGE}
 
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             aquasec/trivy:latest image \
             --exit-code 1 --severity HIGH,CRITICAL \
-            '"$IMAGE"'
-        '''
+            ${IMAGE}
+        """
       }
       post { always { archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true } }
     }
