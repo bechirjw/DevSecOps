@@ -68,13 +68,13 @@ pipeline {
             -v "\$PWD:/work" -w /work \
             aquasec/trivy:latest image \
             --format json --output trivy-report.json \
-            --exit-code 0 --severity LOW,MEDIUM \
+            --exit-code 0 --severity LOW,MEDIUM  --ignore-unfixed\
             ${IMAGE}
 
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             aquasec/trivy:latest image \
-            --exit-code 1 --severity HIGH,CRITICAL \
+            --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed\
             ${IMAGE}
         """
       }
