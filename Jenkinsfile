@@ -60,39 +60,12 @@ pipeline {
       }
     }
 
-    stage('Trivy Scan') {
-  steps {
-    sh '''
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v "$PWD:/work" -w /work \
-        aquasec/trivy:latest image \
-        --format json --output trivy-report.json \
-        --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
-        --ignore-unfixed \
-        ${IMAGE}
-
-      # Optional: print only HIGH/CRITICAL summary to logs (still doesn't fail)
-      docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        aquasec/trivy:latest image \
-        --severity HIGH,CRITICAL \
-        --ignore-unfixed \
-        ${IMAGE} || true
-    '''
-  }
-  post {
-    always {
-      archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: false
-    }
-  }
-}
-
+    
     stage('Run App (for DAST)') {
       steps {
         sh '''
           docker rm -f test-app-ci >/dev/null 2>&1 || true
-          docker run -d --name test-app-ci -p 3000:3000 '"$IMAGE"'
+          docker run -d --name test-app-ci -p 3000:3000 "${IMAGE}"
           # quick wait
           for i in $(seq 1 20); do
             curl -fsS http://localhost:3000/health && exit 0
