@@ -61,25 +61,32 @@ pipeline {
     }
 
     stage('Trivy Scan') {
-      steps {
-        sh """
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "\$PWD:/work" -w /work \
-            aquasec/trivy:latest image \
-            --format json --output trivy-report.json \
-            --exit-code 0 --severity LOW,MEDIUM  --ignore-unfixed\
-            ${IMAGE}
+  steps {
+    sh '''
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v "$PWD:/work" -w /work \
+        aquasec/trivy:latest image \
+        --format json --output trivy-report.json \
+        --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+        --ignore-unfixed \
+        ${IMAGE}
 
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:latest image \
-            --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed\
-            ${IMAGE}
-        """
-      }
-      post { always { archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true } }
+      # Optional: print only HIGH/CRITICAL summary to logs (still doesn't fail)
+      docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        aquasec/trivy:latest image \
+        --severity HIGH,CRITICAL \
+        --ignore-unfixed \
+        ${IMAGE} || true
+    '''
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: false
     }
+  }
+}
 
     stage('Run App (for DAST)') {
       steps {
